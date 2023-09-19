@@ -1,6 +1,5 @@
-class FtFidelityCsv < CSV
-  BLANK_HEADERS_ROWS = 5
-  VALID_HEADERS = ["Run Date", "Action", "Symbol", "Security Description", "Security Type", "Quantity", "Price ($)", "Commission ($)", "Fees ($)", "Accrued Interest ($)", "Amount ($)", "Settlement Date"]
+class FtDiscoverCsv < CSV
+  VALID_HEADERS = ["Trans. Date", "Post Date", "Description", "Amount", "Category"]
 
   def self.parse(*)
     @logger = Logging.logger[self]
@@ -11,7 +10,7 @@ class FtFidelityCsv < CSV
   #TODO also adds a "Code" column, get rid of hardcoding and make configurable
   def self.normalize!(csv)
     rows = csv[1..].filter_map{|row| CSV::Row.new(VALID_HEADERS + ["Code"], truncate_row(row)) if row_present?(row)}
-    FtFidelityTable.new(rows)
+    FtDiscoverTable.new(rows)
   end
 
   def self.truncate_row(row)
@@ -40,7 +39,7 @@ class FtFidelityCsv < CSV
     is_present
   end
 
-  class FtFidelityTable < CSV::Table
+  class FtDiscoverTable < CSV::Table
     include FtTaggable
   end
 end

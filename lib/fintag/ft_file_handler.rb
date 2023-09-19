@@ -40,7 +40,7 @@ class FtFileHandler
     @logger.info "\n" + Dir["#{@source_dir}/*"].join("\n")
 
     if File.file?(@source_path)
-      #TODO returns a file in memory, maybe no the best?
+      #TODO returns a file in memory, maybe not the best?
       return File.read(@source_path)
     else
       raise "Unable to locate data source"
