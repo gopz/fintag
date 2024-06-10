@@ -1,4 +1,4 @@
-class FtFidelityCsv < CSV
+class FtChaseCsv < CSV
   extend FtCsvParsable
 
   def self.parse(*args)
@@ -6,7 +6,7 @@ class FtFidelityCsv < CSV
     @csv = super
     @generalize = custom_args[:generalize]
     @logger = Logging.logger[self]
-    @conf = YAML.load_file("./config/fidelity.yml")
+    @conf = YAML.load_file("./config/chase.yml")
     @valid_headers = @conf["valid_headers"]
     @date_index = @conf["date_index"]
     @run_dt_index = @conf["run_dt_index"]
@@ -17,13 +17,13 @@ class FtFidelityCsv < CSV
     @accting_modifier = @conf["accting_modifier"]
     @date_format = @conf["date_format"]
 
-    FtFidelityTable.new(normalize)
+    FtChaseTable.new(normalize)
   end
 
-  class FtFidelityTable < CSV::Table
+  class FtChaseTable < CSV::Table
     include FtTaggable
     def initialize(*)
-      @conf = YAML.load_file("./config/fidelity.yml")
+      @conf = YAML.load_file("./config/chase.yml")
       super
     end
   end

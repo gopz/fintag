@@ -1,26 +1,40 @@
-MISC_SPENDING = 10
-
 module FtTaggable
-	def tag!
+  def tag!
     logger = Logging.logger[self]
-    # TODO Move to the file handler
-    conf = YAML.load_file("./config/tag_maps/#{self.class.name.match(/Ft(.*?)Csv/)[1]}.yml")
-    reg_map = conf["codes"]
-    match_col_name = conf["match_column"]
+    match_col_name = @conf["desc_column"]
+    amount_col_name = @conf["amount_column"]
+    unidentifiable_pos_tag = @conf["unidentifiable_pos_tag"]
+    unidentifiable_pos_code = @conf["unidentifiable_pos_code"]
+    unidentifiable_neg_tag = @conf["unidentifiable_neg_tag"]
+    unidentifiable_neg_code = @conf["unidentifiable_neg_code"]
+
+    reg_map = YAML.safe_load(File.read("./config/tag_maps/common.yml"), permitted_classes: [Regexp])["codes"]
+
     self.each do |row|
-			match_txt = row[match_col_name]
-			hits = reg_map.select{|_k,v| v["regex"].match(match_txt)}
-			if !hits.empty?
-				if hits.length > 1
-					raise "Multiple hits for transaction  #{match_txt}\n#{JSON.pretty_generate(hits)}"
-				else
-					# TODO consider adjusting map structure to avoid the [1]
-          code = hits.first[1]["code"]
-					row["Code"] = code
-				end
+      # This handles the case where the csv has been generalized, but the fidelity column name is "Action"
+      # where as for Chase and Discover it's also "Description"
+      match_txt = row[match_col_name] || row["Description"]
+      hits = reg_map.select { |_k, v| v["regex"].match(match_txt) }
+
+      if hits.empty?
+        # Same as above
+        amount_col = row[amount_col_name] || row["Amount"]
+        if amount_col.to_f > 0
+          row["Code"] = unidentifiable_pos_code
+          row["Tag"] = unidentifiable_pos_tag
+        else
+          row["Code"] = unidentifiable_neg_code
+          row["Tag"] = unidentifiable_neg_tag
+        end
       else
-        row["Code"] = MISC_SPENDING
+        if hits.length > 1
+          raise "Multiple hits for transaction #{match_txt}\n#{JSON.pretty_generate(hits)}"
+        else
+          code = hits.first[1]["code"]
+          row["Code"] = code
+          row["Tag"] = hits.first[0]
+        end
       end
-		end
-	end
+    end
+  end
 end

@@ -23,3 +23,6 @@ config/*
 
 # Data files - has acct info
 data/*
+
+# Creds, has api access to google sheets
+creds/*
